@@ -3,24 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <title>Smartphone-Ausrichtung</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0078d7">
   <style>
-    body { margin: 0; overflow: hidden; font-family: sans-serif; }
-    #info { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 5px; }
-    button { margin-top: 5px; }
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255,255,255,0.8);
+      padding: 10px;
+      border-radius: 8px;
+      font-family: sans-serif;
+    }
   </style>
 </head>
 <body>
-  <div id="info">
-    <div>Alpha (Yaw): <span id="alpha">0</span>°</div>
-    <div>Beta (Pitch): <span id="beta">0</span>°</div>
-    <div>Gamma (Roll): <span id="gamma">0</span>°</div>
-    <button onclick="kalibrieren()">Kalibrieren</button>
+  <div id="ui">
+    <button onclick="kalibrieren()">Kalibrieren</button><br>
+    Alpha: <span id="alpha">0</span>°<br>
+    Beta: <span id="beta">0</span>°<br>
+    Gamma: <span id="gamma">0</span>°
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const geometry = new THREE.BoxGeometry(1, 2, 0.1);
+    const material = new THREE.MeshBasicMaterial({ color: 0x0078d7, wireframe: true });
+    const phone = new THREE.Mesh(geometry, material);
+    scene.add(phone);
+    camera.position.z = 5;
+
     let offset = { alpha: 0, beta: 0, gamma: 0 };
     if (localStorage.getItem('orientationOffset')) {
       offset = JSON.parse(localStorage.getItem('orientationOffset'));
@@ -32,19 +50,13 @@
       alert("Kalibrierung gespeichert!");
     }
 
+    function angleDiff(a, b) {
+      let diff = a - b;
+      diff = (diff + 540) % 360 - 180;
+      return diff;
+    }
+
     let lastOrientation = { alpha: 0, beta: 0, gamma: 0 };
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const geometry = new THREE.BoxGeometry(1, 2, 0.1);
-    const material = new THREE.MeshNormalMaterial();
-    const phone = new THREE.Mesh(geometry, material);
-    scene.add(phone);
-    camera.position.z = 5;
 
     window.addEventListener('deviceorientation', function(event) {
       lastOrientation = {
@@ -53,15 +65,19 @@
         gamma: event.gamma || 0
       };
 
-      document.getElementById('alpha').textContent = (event.alpha - offset.alpha).toFixed(2);
-      document.getElementById('beta').textContent = (event.beta - offset.beta).toFixed(2);
-      document.getElementById('gamma').textContent = (event.gamma - offset.gamma).toFixed(2);
+      const alphaDiff = angleDiff(event.alpha || 0, offset.alpha);
+      const betaDiff = angleDiff(event.beta || 0, offset.beta);
+      const gammaDiff = angleDiff(event.gamma || 0, offset.gamma);
 
-      const alphaRad = THREE.MathUtils.degToRad(event.alpha - offset.alpha);
-      const betaRad = THREE.MathUtils.degToRad(event.beta - offset.beta);
-      const gammaRad = THREE.MathUtils.degToRad(event.gamma - offset.gamma);
+      document.getElementById('alpha').textContent = alphaDiff.toFixed(2);
+      document.getElementById('beta').textContent = betaDiff.toFixed(2);
+      document.getElementById('gamma').textContent = gammaDiff.toFixed(2);
 
-      phone.rotation.set(betaRad, gammaRad, alphaRad);
+      phone.rotation.set(
+        THREE.MathUtils.degToRad(betaDiff),
+        THREE.MathUtils.degToRad(gammaDiff),
+        THREE.MathUtils.degToRad(alphaDiff)
+      );
     }, true);
 
     function animate() {
