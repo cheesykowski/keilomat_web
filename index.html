@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Geräteausrichtung</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0078d7">
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    .winkel { font-size: 2em; margin: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Geräteausrichtung</h1>
+  <div class="winkel">Alpha (Yaw): <span id="alpha">0</span>°</div>
+  <div class="winkel">Beta (Pitch): <span id="beta">0</span>°</div>
+  <div class="winkel">Gamma (Roll): <span id="gamma">0</span>°</div>
+
+  <script>
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', function(event) {
+        document.getElementById('alpha').textContent = event.alpha.toFixed(2);
+        document.getElementById('beta').textContent = event.beta.toFixed(2);
+        document.getElementById('gamma').textContent = event.gamma.toFixed(2);
+      }, true);
+    } else {
+      alert("DeviceOrientation wird von deinem Gerät nicht unterstützt.");
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(() => console.log('Service Worker registriert'))
+        .catch(error => console.error('Fehler beim Registrieren:', error));
+    }
+  </script>
+</body>
+</html>
