@@ -1,7 +1,7 @@
 {
-  "name": "Ger\u00e4teausrichtung",
-  "short_name": "Ausrichtung",
-  "start_url": "index.html",
+  "name": "Camper Van Ausrichtung",
+  "short_name": "CamperAusrichtung",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0078d7",

@@ -2,11 +2,14 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open('pwa-cache').then(cache => {
       return cache.addAll([
-        'index.html',
-        'manifest.json',
-        'sw.js',
-        'icon-192.png',
-        'icon-512.png'
+        './',
+        './index.html',
+        './app.js',
+        './manifest.json',
+        './sw.js',
+        './icon-192.png',
+        './icon-512.png',
+        './volkswagen_t2_campervan.glb'
       ]);
     })
   );
