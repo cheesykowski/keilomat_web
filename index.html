@@ -1,28 +1,31 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Camper Van Ausrichtung</title>
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0078d7" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0078d7" media="(prefers-color-scheme: light)">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
   <style>
-    body { margin: 0; overflow: hidden; }
+    body { margin: 0; overflow: hidden; background: #f0f0f0; }
     #calibrateBtn {
       position: absolute;
       top: 10px;
       left: 10px;
       z-index: 10;
-      padding: 10px;
-      background: white;
-      border: 1px solid #ccc;
+      padding: 10px 20px;
+      background: #0078d7;
+      color: white;
+      border: none;
       border-radius: 5px;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
   <button id="calibrateBtn">Kalibrieren</button>
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=1.0.0"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
