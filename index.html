@@ -1,90 +1,32 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Smartphone-Ausrichtung</title>
+  <meta charset="UTF-8" />
+  <title>Camper Van Ausrichtung</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0078d7" />
   <style>
     body { margin: 0; overflow: hidden; }
-    canvas { display: block; }
-    #ui {
+    #calibrateBtn {
       position: absolute;
       top: 10px;
       left: 10px;
-      background: rgba(255,255,255,0.8);
+      z-index: 10;
       padding: 10px;
-      border-radius: 8px;
-      font-family: sans-serif;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <div id="ui">
-    <button onclick="kalibrieren()">Kalibrieren</button><br>
-    Alpha: <span id="alpha">0</span>°<br>
-    Beta: <span id="beta">0</span>°<br>
-    Gamma: <span id="gamma">0</span>°
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <button id="calibrateBtn">Kalibrieren</button>
+  <script type="module" src="app.js"></script>
   <script>
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const geometry = new THREE.BoxGeometry(1, 2, 0.1);
-    const material = new THREE.MeshBasicMaterial({ color: 0x0078d7, wireframe: true });
-    const phone = new THREE.Mesh(geometry, material);
-    scene.add(phone);
-    camera.position.z = 5;
-
-    let offset = { alpha: 0, beta: 0, gamma: 0 };
-    if (localStorage.getItem('orientationOffset')) {
-      offset = JSON.parse(localStorage.getItem('orientationOffset'));
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
     }
-
-    function kalibrieren() {
-      offset = { ...lastOrientation };
-      localStorage.setItem('orientationOffset', JSON.stringify(offset));
-      alert("Kalibrierung gespeichert!");
-    }
-
-    function angleDiff(a, b) {
-      let diff = a - b;
-      diff = (diff + 540) % 360 - 180;
-      return diff;
-    }
-
-    let lastOrientation = { alpha: 0, beta: 0, gamma: 0 };
-
-    window.addEventListener('deviceorientation', function(event) {
-      lastOrientation = {
-        alpha: event.alpha || 0,
-        beta: event.beta || 0,
-        gamma: event.gamma || 0
-      };
-
-      const alphaDiff = angleDiff(event.alpha || 0, offset.alpha);
-      const betaDiff = angleDiff(event.beta || 0, offset.beta);
-      const gammaDiff = angleDiff(event.gamma || 0, offset.gamma);
-
-      document.getElementById('alpha').textContent = alphaDiff.toFixed(2);
-      document.getElementById('beta').textContent = betaDiff.toFixed(2);
-      document.getElementById('gamma').textContent = gammaDiff.toFixed(2);
-
-      phone.rotation.set(
-        THREE.MathUtils.degToRad(betaDiff),
-        THREE.MathUtils.degToRad(gammaDiff),
-        THREE.MathUtils.degToRad(alphaDiff)
-      );
-    }, true);
-
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    }
-    animate();
   </script>
 </body>
 </html>
