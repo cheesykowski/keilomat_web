@@ -1,6 +1,6 @@
 {
   "name": "Camper Van Ausrichtung",
-  "short_name": "CamperAusrichtung",
+  "short_name": "CamperPWA",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
