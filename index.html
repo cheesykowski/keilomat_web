@@ -15,6 +15,7 @@
       padding: 10px;
       border-radius: 8px;
       font-family: sans-serif;
+      z-index: 10;
     }
 
     #camperView {
@@ -27,6 +28,7 @@
       background: #ccc;
       border: 2px solid #333;
       border-radius: 10px;
+      z-index: 10;
     }
 
     .keil {
@@ -69,7 +71,6 @@
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
 
     const geometry = new THREE.BoxGeometry(1, 2, 0.1);
     const material = new THREE.MeshBasicMaterial({ color: 0x0078d7, wireframe: true });
@@ -77,7 +78,7 @@
     scene.add(phone);
     camera.position.z = 5;
 
-    = { alpha: 0, beta: 0, gamma: 0 };
+    let offset = { alpha: 0, beta: 0, gamma: 0 };
     if (localStorage.getItem('orientationOffset')) {
       offset = JSON.parse(localStorage.getItem('orientationOffset'));
     }
@@ -135,7 +136,7 @@
       }
     }
 
-    window.addEventListener('deviceorientation', function(event) {
+    function handleOrientation(event) {
       lastOrientation = {
         alpha: event.alpha || 0,
         beta: event.beta || 0,
@@ -157,7 +158,22 @@
       );
 
       updateKeile(betaDiff, gammaDiff);
-    }, true);
+    }
+
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(permissionState => {
+          if (permissionState === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation, true);
+          } else {
+            alert("Sensorzugriff wurde verweigert.");
+          }
+        })
+        .catch(console.error);
+    } else {
+      window.addEventListener('deviceorientation', handleOrientation, true);
+    }
 
     function animate() {
       requestAnimationFrame(animate);
