@@ -4,11 +4,9 @@
   <meta charset="UTF-8">
   <title>Smartphone-Ausrichtung</title>
   <style>
-    /* Basic page styling */
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
 
-    /* UI overlay styling */
     #ui {
       position: absolute;
       top: 10px;
@@ -18,10 +16,39 @@
       border-radius: 8px;
       font-family: sans-serif;
     }
+
+    #camperView {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 100px;
+      background: #ccc;
+      border: 2px solid #333;
+      border-radius: 10px;
+    }
+
+    .keil {
+      position: absolute;
+      width: 30px;
+      height: 20px;
+      background: #0078d7;
+      color: white;
+      font-size: 14px;
+      text-align: center;
+      line-height: 20px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    #keilFL { top: 0; left: 0; }
+    #keilFR { top: 0; right: 0; }
+    #keilHL { bottom: 0; left: 0; }
+    #keilHR { bottom: 0; right: 0; }
   </style>
 </head>
 <body>
-  <!-- UI panel with calibration button and angle display -->
   <div id="ui">
     <button onclick="kalibrieren()">Kalibrieren</button><br>
     Alpha: <span id="alpha">0</span>°<br>
@@ -29,47 +56,85 @@
     Gamma: <span id="gamma">0</span>°
   </div>
 
-  <!-- Load Three.js library -->
-  <script/cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js
+  <div id="camperView">
+    <div id="keilFL" class="keil"></div>
+    <div id="keilFR" class="keil"></div>
+    <div id="keilHL" class="keil"></div>
+    <div id="keilHR" class="keil"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm0/build/three.min.js"
   <script>
-    // Create a 3D scene, camera, and renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // Create a simple box to represent the phone
     const geometry = new THREE.BoxGeometry(1, 2, 0.1);
     const material = new THREE.MeshBasicMaterial({ color: 0x0078d7, wireframe: true });
     const phone = new THREE.Mesh(geometry, material);
     scene.add(phone);
     camera.position.z = 5;
 
-    // Load calibration offset from localStorage if available
     let offset = { alpha: 0, beta: 0, gamma: 0 };
     if (localStorage.getItem('orientationOffset')) {
       offset = JSON.parse(localStorage.getItem('orientationOffset'));
     }
 
-    // Save current orientation as calibration offset
     function kalibrieren() {
       offset = { ...lastOrientation };
       localStorage.setItem('orientationOffset', JSON.stringify(offset));
       alert("Kalibrierung gespeichert!");
     }
 
-    // Calculate shortest angle difference (handles 360° wraparound)
     function angleDiff(a, b) {
       let diff = a - b;
       diff = (diff + 540) % 360 - 180;
       return diff;
     }
 
-    // Store last orientation values
     let lastOrientation = { alpha: 0, beta: 0, gamma: 0 };
 
-    // Listen to device orientation changes
+    function getStufe(h) {
+      h = Math.abs(h);
+      if (h < 3) return 0;
+      if (h < 6) return 1;
+      if (h < 9) return 2;
+      return 3;
+    }
+
+    function updateKeile(beta, gamma) {
+      const rollHeight = Math.tan(beta * Math.PI / 180) * 1.5;
+      const pitchHeight = Math.tan(gamma * Math.PI / 180) * 1.0;
+
+      const stufeRoll = getStufe(rollHeight);
+      const stufePitch = getStufe(pitchHeight);
+
+      ['keilFL','keilFR','keilHL','keilHR'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.display = 'none';
+      });
+
+      if (rollHeight > 0 && pitchHeight > 0) {
+        const el = document.getElementById('keilHR');
+        el.textContent = stufeRoll + stufePitch;
+        el.style.display = 'block';
+      } else if (rollHeight < 0 && pitchHeight > 0) {
+        const el = document.getElementById('keilFR');
+        el.textContent = stufeRoll + stufePitch;
+        el.style.display = 'block';
+      } else if (rollHeight > 0 && pitchHeight < 0) {
+        const el = document.getElementById('keilHL');
+        el.textContent = stufeRoll + stufePitch;
+        el.style.display = 'block';
+      } else if (rollHeight < 0 && pitchHeight < 0) {
+        const el = document.getElementById('keilFL');
+        el.textContent = stufeRoll + stufePitch;
+        el.style.display = 'block';
+      }
+    }
+
     window.addEventListener('deviceorientation', function(event) {
       lastOrientation = {
         alpha: event.alpha || 0,
@@ -77,25 +142,23 @@
         gamma: event.gamma || 0
       };
 
-      // Calculate calibrated angles
       const alphaDiff = angleDiff(event.alpha || 0, offset.alpha);
       const betaDiff = angleDiff(event.beta || 0, offset.beta);
       const gammaDiff = angleDiff(event.gamma || 0, offset.gamma);
 
-      // Update UI with current angles
       document.getElementById('alpha').textContent = alphaDiff.toFixed(2);
       document.getElementById('beta').textContent = betaDiff.toFixed(2);
       document.getElementById('gamma').textContent = gammaDiff.toFixed(2);
 
-      // Apply rotation to the 3D phone model
       phone.rotation.set(
         THREE.MathUtils.degToRad(betaDiff),
         THREE.MathUtils.degToRad(gammaDiff),
         THREE.MathUtils.degToRad(0)
       );
+
+      updateKeile(betaDiff, gammaDiff);
     }, true);
 
-    // Animation loop
     function animate() {
       requestAnimationFrame(animate);
       renderer.render(scene, camera);
