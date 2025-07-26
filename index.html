@@ -15,6 +15,35 @@
       border-radius: 8px;
       font-family: sans-serif;
     }
+    #camperView {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 100px;
+      background: #ccc;
+      border: 2px solid #333;
+      border-radius: 10px;
+    }
+
+    .keil {
+      position: absolute;
+      width: 30px;
+      height: 20px;
+      background: #0078d7;
+      color: white;
+      font-size: 14px;
+      text-align: center;
+      line-height: 20px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    #keilFL { top: 0; left: 0; }
+    #keilFR { top: 0; right: 0; }
+    #keilHL { bottom: 0; left: 0; }
+    #keilHR { bottom: 0; right: 0; }
   </style>
 </head>
 <body>
@@ -25,7 +54,12 @@
     Gamma: <span id="gamma">0</span>°
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <div id="camperView">
+    <div id="keilFL" class="keil"></div>
+    <div id="keilFR" class="keil"></div>
+    <div id="keilHL" class="keil"></div>
+    <div id="keilHR" class="keil"></div>
+  </div>
   <script>
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
@@ -58,6 +92,44 @@
 
     let lastOrientation = { alpha: 0, beta: 0, gamma: 0 };
 
+    function getStufe(h) {
+      h = Math.abs(h);
+      if (h < 3) return 0;
+      if (h < 6) return 1;
+      if (h < 9) return 2;
+      return 3;
+    }
+
+    function updateKeile(beta, gamma) {
+      const rollHeight = Math.tan(beta * Math.PI / 180) * 1.5;
+      const pitchHeight = Math.tan(gamma * Math.PI / 180) * 1.0;
+
+      const stufeRoll = getStufe(rollHeight);
+      const stufePitch = getStufe(pitchHeight);
+
+      ['keilFL','keilFR','keilHL','keilHR'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.display = 'none';
+      });
+
+      if (rollHeight > 0 && pitchHeight > 0) {
+        const el = document.getElementById('keilHR');
+        el.textContent = stufeRoll + stufePitch;
+        el.style.display = 'block';
+      } else if (rollHeight < 0 && pitchHeight > 0) {
+        const el = document.getElementById('keilFR');
+        el.textContent = stufeRoll + stufePitch;
+        el.style.display = 'block';
+      } else if (rollHeight > 0 && pitchHeight < 0) {
+        const el = document.getElementById('keilHL');
+        el.textContent = stufeRoll + stufePitch;
+        el.style.display = 'block';
+      } else if (rollHeight < 0 && pitchHeight < 0) {
+        const el = document.getElementById('keilFL');
+        el.textContent = stufeRoll + stufePitch;
+        el.style.display = 'block';
+      }
+    }
     window.addEventListener('deviceorientation', function(event) {
       lastOrientation = {
         alpha: event.alpha || 0,
@@ -78,6 +150,7 @@
         THREE.MathUtils.degToRad(gammaDiff),
         THREE.MathUtils.degToRad(alphaDiff)
       );
+      updateKeile(betaDiff, gammaDiff);
     }, true);
 
     function animate() {
