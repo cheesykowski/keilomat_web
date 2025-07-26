@@ -65,7 +65,8 @@
     <div id="keilHR" class="keil"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/threeript>">
+  https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js
+  <script>
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer();
@@ -136,30 +137,6 @@
       }
     }
 
-    function handleOrientation(event) {
-      lastOrientation = {
-        alpha: event.alpha || 0,
-        beta: event.beta || 0,
-        gamma: event.gamma || 0
-      };
-
-      const alphaDiff = angleDiff(event.alpha || 0, offset.alpha);
-      const betaDiff = angleDiff(event.beta || 0, offset.beta);
-      const gammaDiff = angleDiff(event.gamma || 0, offset.gamma);
-
-      document.getElementById('alpha').textContent = alphaDiff.toFixed(2);
-      document.getElementById('beta').textContent = betaDiff.toFixed(2);
-      document.getElementById('gamma').textContent = gammaDiff.toFixed(2);
-
-      phone.rotation.set(
-        THREE.MathUtils.degToRad(betaDiff),
-        THREE.MathUtils.degToRad(gammaDiff),
-        THREE.MathUtils.degToRad(0)
-      );
-
-      updateKeile(betaDiff, gammaDiff);
-    }
-
     window.addEventListener('load', () => {
       if (typeof DeviceOrientationEvent !== 'undefined' &&
           typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -174,7 +151,29 @@
         button.onclick = () => {
           DeviceOrientationEvent.requestPermission().then(response => {
             if (response === 'granted') {
-              window.addEventListener('deviceorientation', handleOrientation, true);
+              window.addEventListener('deviceorientation', function(event) {
+                lastOrientation = {
+                  alpha: event.alpha || 0,
+                  beta: event.beta || 0,
+                  gamma: event.gamma || 0
+                };
+
+                const alphaDiff = angleDiff(event.alpha || 0, offset.alpha);
+                const betaDiff = angleDiff(event.beta || 0, offset.beta);
+                const gammaDiff = angleDiff(event.gamma || 0, offset.gamma);
+
+                document.getElementById('alpha').textContent = alphaDiff.toFixed(2);
+                document.getElementById('beta').textContent = betaDiff.toFixed(2);
+                document.getElementById('gamma').textContent = gammaDiff.toFixed(2);
+
+                phone.rotation.set(
+                  THREE.MathUtils.degToRad(betaDiff),
+                  THREE.MathUtils.degToRad(gammaDiff),
+                  THREE.MathUtils.degToRad(0)
+                );
+
+                updateKeile(betaDiff, gammaDiff);
+              }, true);
               button.remove();
             } else {
               alert('Sensorzugriff verweigert.');
@@ -183,7 +182,29 @@
         };
         document.body.appendChild(button);
       } else {
-        window.addEventListener('deviceorientation', handleOrientation, true);
+        window.addEventListener('deviceorientation', function(event) {
+          lastOrientation = {
+            alpha: event.alpha || 0,
+            beta: event.beta || 0,
+            gamma: event.gamma || 0
+          };
+
+          const alphaDiff = angleDiff(event.alpha || 0, offset.alpha);
+          const betaDiff = angleDiff(event.beta || 0, offset.beta);
+          const gammaDiff = angleDiff(event.gamma || 0, offset.gamma);
+
+          document.getElementById('alpha').textContent = alphaDiff.toFixed(2);
+          document.getElementById('beta').textContent = betaDiff.toFixed(2);
+          document.getElementById('gamma').textContent = gammaDiff.toFixed(2);
+
+          phone.rotation.set(
+            THREE.MathUtils.degToRad(betaDiff),
+            THREE.MathUtils.degToRad(gammaDiff),
+            THREE.MathUtils.degToRad(0)
+          );
+
+          updateKeile(betaDiff, gammaDiff);
+        }, true);
       }
     });
 
