@@ -53,7 +53,6 @@
 <body>
   <div id="ui">
     <button onclick="kalibrieren()">Kalibrieren</button><br>
-    <button onclick="startSensor()">Sensor aktivieren</button><br>
     Alpha: <span id="alpha">0</span>°<br>
     Beta: <span id="beta">0</span>°<br>
     Gamma: <span id="gamma">0</span>°
@@ -66,8 +65,7 @@
     <div id="keilHR" class="keil"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0min.js"
-  <script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/threeript>">
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer();
@@ -162,22 +160,32 @@
       updateKeile(betaDiff, gammaDiff);
     }
 
-    function startSensor() {
+    window.addEventListener('load', () => {
       if (typeof DeviceOrientationEvent !== 'undefined' &&
           typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-          .then(permissionState => {
-            if (permissionState === 'granted') {
+        const button = document.createElement('button');
+        button.textContent = 'Sensor aktivieren';
+        button.style.position = 'absolute';
+        button.style.top = '50%';
+        button.style.left = '50%';
+        button.style.transform = 'translate(-50%, -50%)';
+        button.style.padding = '1em';
+        button.style.fontSize = '1.2em';
+        button.onclick = () => {
+          DeviceOrientationEvent.requestPermission().then(response => {
+            if (response === 'granted') {
               window.addEventListener('deviceorientation', handleOrientation, true);
+              button.remove();
             } else {
-              alert("Sensorzugriff wurde verweigert.");
+              alert('Sensorzugriff verweigert.');
             }
-          })
-          .catch(console.error);
+          }).catch(console.error);
+        };
+        document.body.appendChild(button);
       } else {
         window.addEventListener('deviceorientation', handleOrientation, true);
       }
-    }
+    });
 
     function animate() {
       requestAnimationFrame(animate);
